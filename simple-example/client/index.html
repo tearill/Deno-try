@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comment</title>
+</head>
+<body>
+  <h1>Publish your comments here</h1>
+  <input name="username" size="10" placeholder="username" />
+  <input name="content" size="40" placeholder="comment content" />
+  <button class="publish_btn">Publish</button>
+  <main></main>
+
+  <script>
+    const username = document.querySelector('[name=username]')
+    const content = document.querySelector('[name=content]')
+    const button = document.querySelector('.publish_btn')
+    const main = document.querySelector('main')
+    const span = document.createElement("span");
+    console.log(username, content, button, main)
+
+    window.onload = async () => {
+      await getData()
+      username.value = localStorage.username || ''
+      button.addEventListener('click', publish)
+    }
+
+    function createWrapper(content) {
+      span.textContent = text
+      return span.innerHTML
+    }
+
+    async function getData() {
+      const res = fetch('http://localhost:3000/comments')
+      const comments = await res.json();
+      const html = `
+        ${comments.map(([id, username, content, createdAt]) => `
+          <div class="comments"> ${createWrapper(username)} || ${createWrapper(content)} || <small class="publish_time">(${createdAt})</small></div>
+        `).join("")}
+      `
+      main.innerHTML = html
+    }
+
+    async function publish() {
+      if (!username.value) {
+        alert('Please input your username!')
+        return false
+      } else if (username.length > 10) {
+        alert('Please input a shorter username!')
+        return false
+      }
+
+      if (!content.value) {
+        alert('Please input your comment!')
+        return false
+      } else if (content.length > 500) {
+        alert('Too long comment(not longer than 500)!')
+        return false
+      }
+
+      button.disabled = true
+
+      try {
+        const req = await fetch('http://localhost:3000/publish', {
+          method: 'POST',
+
+        })
+      } catch(err) {
+        alert('There is something wrong during publishing your comment, please try again!')
+        button.disabled = false
+        return
+      }
+
+      localStorage.username = username.value
+      content.value = ''
+      await getData()
+      button.disabled = false
+    }
+  </script>
+</body>
+</html>
